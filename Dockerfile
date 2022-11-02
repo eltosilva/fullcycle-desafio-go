@@ -1,14 +1,21 @@
-FROM golang:latest as compilador
+FROM golang:latest as compilar
 
-WORKDIR /usr/src/app
+RUN mkdir -p /app
+WORKDIR /app
 
-COPY ./ola-mundo.go .
-RUN go build ola-mundo.go
+ENV GOPROXY https://proxy.golang.org,direct
 
-FROM alpine:latest
+COPY . .
 
-WORKDIR /usr/src
+ENV CGO_ENABLED=0
 
-COPY --from=compilador /usr/src/app/ola-mundo .
+RUN GOOS=linux go build ./app.go
 
-CMD [ "./ola-mundo" ]
+
+FROM scratch
+
+WORKDIR /app
+
+COPY --from=compilar /app/app .
+
+CMD ["/app/app"]
